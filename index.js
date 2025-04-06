@@ -67,31 +67,58 @@ var state = {
 var inGithub = false;
 var inEmail = false;
 function handlers() {
-  (document.onmousemove = function (event) {
+  // Mouse move event handler
+  document.onmousemove = function(event) {
+    handlePointerMove(event.pageX, event.pageY);
+  };
+  
+  // Mouse click event handler
+  document.onclick = function(event) {
+    if (inEmail) {
+      window.open('https://mail.google.com/mail/?view=cm&fs=1&to=gabriel.jsh@gmail.com');
+    } else if (inGithub) {
+      window.open('https://github.com/gabehouse');
+    }
+  };
+  
+  // Touch move event handler
+  document.addEventListener('touchmove', function(event) {
+    if (event.touches.length > 0) {
+      handlePointerMove(event.touches[0].pageX, event.touches[0].pageY);
+    }
+    // Prevent scrolling while touching the canvas
+    event.preventDefault();
+  }, { passive: false });
+  
+  // Touch end event handler (equivalent to click)
+  document.addEventListener('touchend', function(event) {
+    if (inEmail) {
+      window.open('https://mail.google.com/mail/?view=cm&fs=1&to=gabriel.jsh@gmail.com');
+    } else if (inGithub) {
+      window.open('https://github.com/gabehouse');
+    }
+  });
+  
+  // Common function to handle both mouse and touch movement
+  function handlePointerMove(pageX, pageY) {
     oldcx = curcx;
     oldcy = curcy;
     oldt = curt;
-    curcx = (event.pageX - canvas.getBoundingClientRect().left)*scalex;
-    curcy = (event.pageY - canvas.getBoundingClientRect().top)*scaley;	
+    curcx = (pageX - canvas.getBoundingClientRect().left) * scalex;
+    curcy = (pageY - canvas.getBoundingClientRect().top) * scaley;
     curt = (new Date()).getMilliseconds();
+    
     if (curcx >= ghcbx && curcx <= ghcbx + ghcbw && curcy >= ghcby && curcy <= ghcby + ghcbh) {
-	inGithub = true;
+      inGithub = true;
     } else if (curcx >= emcbx && curcx <= emcbx + emcbw && curcy >= emcby && curcy <= emcby + emcbh) {
-	inEmail = true;
+      inEmail = true;
     } else {
-        inGithub = false;
-	inEmail = false;
+      inGithub = false;
+      inEmail = false;
     }
-   
- //      console.log(curcx + "," + curcy + "," + state.x + "," + state.y);
-  }), document.onclick = function(event) {
-    if (inEmail) {
-       window.open('https://mail.google.com/mail/?view=cm&fs=1&to=gabriel.jsh@gmail.com');
-    } else if (inGithub) {
-       window.open('https://github.com/gabehouse');
-    }
-  };
-};
+  }
+}
+
 handlers();
 
 var cursorCollision = function(p) {
@@ -293,7 +320,7 @@ function update(progress) {
   wallCollision(progress);
   moveBall(progress);
   squish(progress);
-  if (state.vely > 0 && showInteractableText) 
+  if ((state.vely > 0 || state.velx != 0) && showInteractableText) 
   showInteractableText = false;
 }
 
@@ -367,15 +394,16 @@ var l3cy = l1cy  + lineh*2;
 var l4cy = l1cy + lineh*3;
 var foottexty = height - 100;
 var textx = width/2;
+var l3x = textx - 450;
 
-var ghcx = width/2 - 120;
+var ghcx = l3x + 560;
 var ghcy = l3cy;
 var ghcbw = 230;
 var ghcbh = 90;
 var ghcbx = ghcx - ghcbw/2;
 var ghcby = ghcy - ghcbh/2 - 30;
 
-var emcx = width/2 + 560;
+var emcx = l3x + 1300;
 var emcy = l3cy;
 var emcbw = 190;
 var emcbh = 110;
@@ -383,21 +411,25 @@ var emcbx = emcx - emcbw/2;
 var emcby = emcy - emcbh/2 - 30;
 var d = (new Date()).getFullYear();
 
+
+
 function drawText() {
   ctx.textAlign="center"; 
   ctx.fillStyle = "black";
   ctx.font = "80px Georgia";
-  ctx.fillText("Hello there,",textx,l1cy);
-  ctx.fillText("I'm a software developer out of University of Waterloo.",textx,l2cy);
-  ctx.fillText("Feel free to check out my ",textx - 700 ,l3cy);
-  ctx.fillText(", send me an ",ghcx +350, l3cy);
-  ctx.fillText(", or bounce along.",textx + 975, l3cy);
+  ctx.fillText("Hello,",textx + 40,l1cy);
+  ctx.fillText("I'm a computer science student from University of Waterloo.",textx,l2cy);
+  ctx.fillText("Feel free to check out my ",l3x ,l3cy);
+  ctx.fillText("or send me an ",l3x +950, l3cy);
+ // ctx.fillText(", or bounce off.",textx + 975, l3cy);
 // ctx.fillStyle = "blue";
 //  ctx.fillRect(ghcbx, ghcby, ghcbw, ghcbh);
 //  ctx.fillRect(emcbx,emcby, emcbw,emcbh);
- // ctx.fillText(".",textx + 1170,l3cy); 
+  ctx.fillText(".",l3x + 1410,l3cy); 
   ctx.fillStyle = "yellow";
+  ghcx = l3x + 560;
   ctx.fillText("github",ghcx,ghcy);
+  emcx = l3x + 1300;
   ctx.fillText("email",emcx,emcy);
   if (inGithub) { 
     ctx.fillRect(ghcbx,ghcby+ghcbh,ghcbw,20);
@@ -409,7 +441,7 @@ function drawText() {
   var interactTextY = state.y - 200;
 
   if (showInteractableText) {
-    ctx.fillText("bounce using your cursor", interactTextX, interactTextY);
+    ctx.fillText("play with me", interactTextX, interactTextY);
   }
 
 //footer
